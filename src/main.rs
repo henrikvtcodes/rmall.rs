@@ -1,52 +1,34 @@
 use std::fs;
 use std::env;
-use std::io::Error;
-use std::path::{PathBuf};
+use std::path::{PathBuf, Path};
 
 
 fn main() {
-
     for arg in env::args().skip(1) {
         let path_raw = PathBuf::from(arg);
         let real_path = path_raw.canonicalize().expect("Invalid Path");
         let file_metadata = fs::metadata(&real_path).expect("Error with Metadata");
+        if file_metadata.is_dir() {
+            if !has_nested_folder(&real_path) {
+                fs::remove_dir(real_path).expect("Error deleting directory");
+            } else {
+                println!("Directory {:?} has nested contents. Delete cancelled.", real_path.as_path().to_string_lossy());
+            }
+        } else if file_metadata.is_file() {
+            fs::remove_file(real_path).expect("Error deleting file");
+        }
     }
 }
 
-fn is_param(input: String) -> bool {
-    return input.starts_with("-");
-}
-
-struct Args {
-    recurse: bool,
-    verbose: bool,
-    interactive: bool,
-    force: bool
-}
-
-fn parse_params(params: String) -> Result<Args,()> {
-    if !params.starts_with("-") {
-        Err::<Args, ()>(());
+fn has_nested_folder(path: &Path) -> bool {
+    let mut has_nested = false;
+    for entry in fs::read_dir(path).expect("Error with read_dir") {
+        let entry = entry.expect("Error with entry");
+        let path = entry.path();
+        if path.is_dir() {
+            has_nested = true;
+            break;
+        }
     }
-    let cleanParams = params.split('-').nth(1);
-    println!("Clean Params {:#?}", cleanParams.unwrap());
-    let parsed = Args {
-        recurse: false,
-        verbose: false,
-        interactive: false,
-        force: false
-    };
-    // for singleparam in cleanParams {
-    //     if(singleparam == "r") {
-    //         parsed.recurse == true;
-    //     } else if (singleparam == "v") {
-    //         parsed.verbose == true;
-    //     } else if (singleparam == "i") {
-    //         parsed.interactive == true;
-    //     } else if (singleparam == "f") {
-    //         parsed.interactive == true;
-    //     }
-    // }
-
-    Ok(parsed)
+    has_nested
 }
