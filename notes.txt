@@ -1,0 +1,2 @@
+when it complains about rt multi thread or whatever, just make this the tokio macro
+#[tokio::main(flavor = "current_thread")]
