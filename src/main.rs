@@ -1,24 +1,36 @@
 use std::fs;
 use std::env;
 use std::path::{PathBuf, Path};
+use clap::Parser;
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+
+    /// Delete nested directories
+    #[arg(short, long, default_value_t=false)]
+    recursive: bool,
+
+    /// Ignore invalid files & directories
+    #[arg(short, long, default_value_t=false)]
+    force: bool,
+
+    /// Output what is being removed
+    #[arg(short, long, default_value_t=false)]
+    verbose: bool
+
+}
 
 fn main() {
-    for arg in env::args().skip(1) {
-        let path_raw = PathBuf::from(arg);
-        let real_path = path_raw.canonicalize().expect("Invalid Path");
-        let file_metadata = fs::metadata(&real_path).expect("Error with Metadata");
-        if file_metadata.is_dir() {
-            if !has_nested_folder(&real_path) {
-                fs::remove_dir(real_path).expect("Error deleting directory");
-            } else {
-                println!("Directory {:?} has nested contents. Delete cancelled.", real_path.as_path().to_string_lossy());
-            }
-        } else if file_metadata.is_file() {
-            fs::remove_file(real_path).expect("Error deleting file");
-        }
-    }
+    let args = Args::parse();
+
+    println!("Force: {:?}", args.force);
+    println!("Verbose: {:?}", args.verbose);
+    println!("Recurse: {:?}", args.recursive);
+
 }
+    
+
 
 fn has_nested_folder(path: &Path) -> bool {
     let mut has_nested = false;
