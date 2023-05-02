@@ -2,6 +2,9 @@
 name = "rmall"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "cross platform cli for deleting multiple things at once"
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
